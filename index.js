@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require('cors')
 const app = express();
 const cron = require("node-cron");
-const restaurantServices = require("../surprisebox-backend-app/src/services/Restaurant.services")
+const restaurantServices = require("./src/services/Restaurant.services")
 
 app.use(express.json())
 app.use(cors())
