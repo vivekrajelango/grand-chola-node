@@ -462,7 +462,7 @@ const getAllMenuItems = async (userID) => {
     console.log("entry: ", new Date())
     try {
         if (userID) {
-            const items = await Menu.find({ "restaurantID": "test" }).select("itemID offer name onlinePrice categoryID visible isVeg timeSlots customNextVisibleTime imgSrc addOns spicy searchKeys")
+            const items = await Menu.find({ "restaurantID": "test" }).sort({ categoryID: 1, sortOrder: 1 }).select("itemID offer name onlinePrice categoryID visible isVeg timeSlots customNextVisibleTime imgSrc addOns spicy searchKeys sortOrder")
             console.log("api response: ", new Date())
             if (items) {
                 response.data = { "menu": items }
@@ -486,7 +486,7 @@ const getMenuItems = async (userID) => {
     console.log("entry: ", new Date())
     try {
         if (userID) {
-            const items = await Menu.find({ "restaurantID": "test" }).populate({ path: 'addOns' }).select("itemID categoryID offer name onlinePrice shortDescription favourite imgSrc isVeg addOns timeSlots customNextVisibleTime spicy visible searchKeys")
+            const items = await Menu.find({ "restaurantID": "test" }).populate({ path: 'addOns' }).sort({ categoryID: 1, sortOrder: 1 }).select("itemID categoryID offer name onlinePrice shortDescription favourite imgSrc isVeg addOns timeSlots customNextVisibleTime spicy visible searchKeys sortOrder")
             console.log("api response: ", new Date())
             if (items) {
                 var currentDate = new Date();
@@ -792,6 +792,10 @@ const getAllOrder = async (userID) => {
 const addNewMenuItem = async (item) => {
     let response = { "data": null, "error": null }
     try {
+        // Get the max sortOrder in the same category to place new item at end
+        const lastItem = await Menu.findOne({ restaurantID: 'test', categoryID: item.categoryID }).sort({ sortOrder: -1 })
+        const nextSortOrder = lastItem && lastItem.sortOrder != null ? lastItem.sortOrder + 1 : 0
+
         const newItem = new Menu({
             restaurantID: 'test',
             itemID: uuidv4.v4(),
@@ -806,6 +810,7 @@ const addNewMenuItem = async (item) => {
             visible: item.visible !== undefined ? item.visible : true,
             imgSrc: item.imgSrc || '',
             status: 'active',
+            sortOrder: nextSortOrder,
             searchKeys: [],
             timeSlots: [],
             createdAt: Date.now(),
@@ -840,4 +845,49 @@ const deleteMenuItem = async (itemID) => {
     }
 }
 
-module.exports = { restaurantOnboard, restaurantApprove, restaurantStatus, createMenuItems, updateMenuItems, getMenuItems, getAllMenuItems, getPredefinedItems, getCategories, updateMenuItemsWithoutExcel, getRestaurantStatus, createOrder, getAllOrder, getOrder, updateOrderStatus, activateAllItems, activateItemBasedOnTime, addNewMenuItem, deleteMenuItem };
+const reorderMenuItem = async (itemID, direction) => {
+    let response = { "data": null, "error": null }
+    try {
+        const currentItem = await Menu.findOne({ itemID: itemID })
+        if (!currentItem) {
+            response.error = "Menu item not found"
+            return response
+        }
+
+        const currentOrder = currentItem.sortOrder || 0
+        const categoryID = currentItem.categoryID
+
+        let adjacentItem
+        if (direction === 'up') {
+            adjacentItem = await Menu.findOne({
+                categoryID: categoryID,
+                restaurantID: 'test',
+                sortOrder: { $lt: currentOrder }
+            }).sort({ sortOrder: -1 })
+        } else {
+            adjacentItem = await Menu.findOne({
+                categoryID: categoryID,
+                restaurantID: 'test',
+                sortOrder: { $gt: currentOrder }
+            }).sort({ sortOrder: 1 })
+        }
+
+        if (!adjacentItem) {
+            response.data = "Item is already at the boundary"
+            return response
+        }
+
+        // Swap sortOrder values
+        const adjacentOrder = adjacentItem.sortOrder || 0
+        await Menu.updateOne({ _id: currentItem._id }, { $set: { sortOrder: adjacentOrder, updatedAt: Date.now() } })
+        await Menu.updateOne({ _id: adjacentItem._id }, { $set: { sortOrder: currentOrder, updatedAt: Date.now() } })
+
+        response.data = "Item reordered successfully"
+        return response
+    } catch (err) {
+        response.error = err.message
+        return response
+    }
+}
+
+module.exports = { restaurantOnboard, restaurantApprove, restaurantStatus, createMenuItems, updateMenuItems, getMenuItems, getAllMenuItems, getPredefinedItems, getCategories, updateMenuItemsWithoutExcel, getRestaurantStatus, createOrder, getAllOrder, getOrder, updateOrderStatus, activateAllItems, activateItemBasedOnTime, addNewMenuItem, deleteMenuItem, reorderMenuItem };

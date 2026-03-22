@@ -27,6 +27,7 @@ const Menu = Schema(
         description: String,
         shortDescription: String,
         spicy: Boolean,
+        sortOrder: { type: Number, default: 0 },
         searchKeys: Array,
         customNextVisibleTime: {
             timeStamp: Date,

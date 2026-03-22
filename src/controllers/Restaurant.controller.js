@@ -358,4 +358,23 @@ const deleteMenuItem = async (req, res) => {
     }
 }
 
-module.exports = { restaurantOnboard, restaurantApprove, restaurantStatus, createMenuItems, updateMenuItems, getMenuItems, getAllMenuItems, getPredefinedItems, getCategories, getRestaurantStatus, updateMenuItemsWithoutExcel, createOrder, getOrder, getAllOrder, updateOrderStatus, addNewMenuItem, deleteMenuItem };
+const reorderMenuItem = async (req, res) => {
+    try {
+        let result = await restaurantServices.reorderMenuItem(req.body.itemID, req.body.direction)
+
+        if (result) {
+            if (result.data != null) {
+                res.status(200).send(result);
+            } else {
+                res.status(500).send(result);
+            }
+        } else {
+            res.status(500).send({ "data": null, "error": "Error while reordering menu item" });
+        }
+
+    } catch (err) {
+        res.status(500).send({ "data": null, "error": err.message });
+    }
+}
+
+module.exports = { restaurantOnboard, restaurantApprove, restaurantStatus, createMenuItems, updateMenuItems, getMenuItems, getAllMenuItems, getPredefinedItems, getCategories, getRestaurantStatus, updateMenuItemsWithoutExcel, createOrder, getOrder, getAllOrder, updateOrderStatus, addNewMenuItem, deleteMenuItem, reorderMenuItem };

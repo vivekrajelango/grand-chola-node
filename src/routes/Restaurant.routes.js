@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const {restaurantOnboard, restaurantApprove, restaurantStatus, createMenuItems, updateMenuItems, getAllMenuItems, getMenuItems, getPredefinedItems, getCategories, getRestaurantStatus, updateMenuItemsWithoutExcel, createOrder, getAllOrder, getOrder, updateOrderStatus, addNewMenuItem, deleteMenuItem} = require('../controllers/Restaurant.controller');
+const {restaurantOnboard, restaurantApprove, restaurantStatus, createMenuItems, updateMenuItems, getAllMenuItems, getMenuItems, getPredefinedItems, getCategories, getRestaurantStatus, updateMenuItemsWithoutExcel, createOrder, getAllOrder, getOrder, updateOrderStatus, addNewMenuItem, deleteMenuItem, reorderMenuItem} = require('../controllers/Restaurant.controller');
 
 router.route('/onboard').post(restaurantOnboard)
 router.route('/update-status').post(restaurantApprove)
@@ -21,5 +21,6 @@ router.route('/fetch-order').get(getOrder)
 router.route('/update-order-status').post(updateOrderStatus)
 router.route('/add-menu-item').post(addNewMenuItem)
 router.route('/delete-menu-item').post(deleteMenuItem)
+router.route('/reorder-menu-item').post(reorderMenuItem)
 
 module.exports = router;
