@@ -854,8 +854,27 @@ const reorderMenuItem = async (itemID, direction) => {
             return response
         }
 
-        const currentOrder = currentItem.sortOrder || 0
         const categoryID = currentItem.categoryID
+
+        // Check if all items in this category have the same sortOrder (e.g. all 0)
+        // If so, initialize sequential sortOrder values first
+        const categoryItems = await Menu.find({ categoryID: categoryID, restaurantID: 'test' }).sort({ _id: 1 })
+        const allSame = categoryItems.every(item => (item.sortOrder || 0) === (categoryItems[0].sortOrder || 0))
+
+        if (allSame && categoryItems.length > 1) {
+            const bulkOps = categoryItems.map((item, index) => ({
+                updateOne: {
+                    filter: { _id: item._id },
+                    update: { $set: { sortOrder: index } }
+                }
+            }))
+            await Menu.bulkWrite(bulkOps)
+            // Re-fetch the current item to get updated sortOrder
+            const refreshedItem = await Menu.findOne({ itemID: itemID })
+            currentItem.sortOrder = refreshedItem.sortOrder
+        }
+
+        const currentOrder = currentItem.sortOrder
 
         let adjacentItem
         if (direction === 'up') {
@@ -878,7 +897,7 @@ const reorderMenuItem = async (itemID, direction) => {
         }
 
         // Swap sortOrder values
-        const adjacentOrder = adjacentItem.sortOrder || 0
+        const adjacentOrder = adjacentItem.sortOrder
         await Menu.updateOne({ _id: currentItem._id }, { $set: { sortOrder: adjacentOrder, updatedAt: Date.now() } })
         await Menu.updateOne({ _id: adjacentItem._id }, { $set: { sortOrder: currentOrder, updatedAt: Date.now() } })
 
