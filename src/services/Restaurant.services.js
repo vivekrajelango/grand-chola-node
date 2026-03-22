@@ -824,4 +824,20 @@ const addNewMenuItem = async (item) => {
     }
 }
 
-module.exports = { restaurantOnboard, restaurantApprove, restaurantStatus, createMenuItems, updateMenuItems, getMenuItems, getAllMenuItems, getPredefinedItems, getCategories, updateMenuItemsWithoutExcel, getRestaurantStatus, createOrder, getAllOrder, getOrder, updateOrderStatus, activateAllItems, activateItemBasedOnTime, addNewMenuItem };
+const deleteMenuItem = async (itemID) => {
+    let response = { "data": null, "error": null }
+    try {
+        const result = await Menu.findOneAndDelete({ itemID: itemID })
+        if (result) {
+            response.data = "Item deleted successfully"
+        } else {
+            response.error = "Menu item not found"
+        }
+        return response;
+    } catch (err) {
+        response.error = err.message;
+        return response;
+    }
+}
+
+module.exports = { restaurantOnboard, restaurantApprove, restaurantStatus, createMenuItems, updateMenuItems, getMenuItems, getAllMenuItems, getPredefinedItems, getCategories, updateMenuItemsWithoutExcel, getRestaurantStatus, createOrder, getAllOrder, getOrder, updateOrderStatus, activateAllItems, activateItemBasedOnTime, addNewMenuItem, deleteMenuItem };
