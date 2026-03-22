@@ -1,6 +1,25 @@
 const fs = require("fs");
 const restaurantServices = require("../services/Restaurant.services")
 
+const addNewMenuItem = async (req, res) => {
+    try {
+        let result = await restaurantServices.addNewMenuItem(req.body.menuItem)
+
+        if (result) {
+            if (result.data != null) {
+                res.status(200).send(result);
+            } else {
+                res.status(500).send(result);
+            }
+        } else {
+            res.status(500).send({ "data": null, "error": "Error while adding menu item" });
+        }
+
+    } catch (err) {
+        res.status(500).send({ "data": null, "error": err.message });
+    }
+}
+
 const restaurantOnboard = async (req, res) => {
     //fetch the images
     let businessLicense = null;
@@ -320,4 +339,4 @@ const getAllOrder = async (req, res) => {
     }
 }
 
-module.exports = { restaurantOnboard, restaurantApprove, restaurantStatus, createMenuItems, updateMenuItems, getMenuItems, getAllMenuItems, getPredefinedItems, getCategories, getRestaurantStatus, updateMenuItemsWithoutExcel, createOrder, getOrder, getAllOrder, updateOrderStatus };
+module.exports = { restaurantOnboard, restaurantApprove, restaurantStatus, createMenuItems, updateMenuItems, getMenuItems, getAllMenuItems, getPredefinedItems, getCategories, getRestaurantStatus, updateMenuItemsWithoutExcel, createOrder, getOrder, getAllOrder, updateOrderStatus, addNewMenuItem };

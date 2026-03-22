@@ -789,4 +789,39 @@ const getAllOrder = async (userID) => {
     }
 }
 
-module.exports = { restaurantOnboard, restaurantApprove, restaurantStatus, createMenuItems, updateMenuItems, getMenuItems, getAllMenuItems, getPredefinedItems, getCategories, updateMenuItemsWithoutExcel, getRestaurantStatus, createOrder, getAllOrder, getOrder, updateOrderStatus, activateAllItems, activateItemBasedOnTime };
+const addNewMenuItem = async (item) => {
+    let response = { "data": null, "error": null }
+    try {
+        const newItem = new Menu({
+            restaurantID: 'test',
+            itemID: uuidv4.v4(),
+            name: item.name,
+            categoryID: item.categoryID,
+            onlinePrice: item.onlinePrice,
+            dineinPrice: item.dineinPrice || '',
+            shortDescription: item.shortDescription || '',
+            offer: item.offer || '0',
+            isVeg: item.isVeg || false,
+            spicy: item.spicy || false,
+            visible: item.visible !== undefined ? item.visible : true,
+            imgSrc: item.imgSrc || '',
+            status: 'active',
+            searchKeys: [],
+            timeSlots: [],
+            createdAt: Date.now(),
+            updatedAt: Date.now()
+        })
+        const saved = await newItem.save()
+        if (saved) {
+            response.data = "Item added successfully"
+        } else {
+            response.error = "Error while adding menu item"
+        }
+        return response;
+    } catch (err) {
+        response.error = err.message;
+        return response;
+    }
+}
+
+module.exports = { restaurantOnboard, restaurantApprove, restaurantStatus, createMenuItems, updateMenuItems, getMenuItems, getAllMenuItems, getPredefinedItems, getCategories, updateMenuItemsWithoutExcel, getRestaurantStatus, createOrder, getAllOrder, getOrder, updateOrderStatus, activateAllItems, activateItemBasedOnTime, addNewMenuItem };
